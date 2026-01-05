@@ -10,6 +10,7 @@ import * as requests from '../okta/iga/accessRequests.js';
 import * as adminV2 from '../okta/iga/accessRequestsAdminV2.js';
 import * as endUserV2 from '../okta/iga/accessRequestsEndUserV2.js';
 import * as entitlements from '../okta/iga/entitlements.js';
+import * as oktaGroups from '../okta/management/groups.js';
 
 // ============================================================================
 // Tool Input Schemas (Zod)
@@ -99,6 +100,15 @@ export const listPackagesSchema = z.object({
 
 export const getPackageSchema = z.object({
   packageId: z.string().min(1).describe('The package ID'),
+});
+
+// Okta Core (Management) schemas
+export const oktaGroupsListSchema = z.object({
+  q: z.string().optional().describe('Free-text search on group name (Okta q=)'),
+  search: z.string().optional().describe('SCIM search expression (Okta search=)'),
+  filter: z.string().optional().describe('Filter expression (Okta filter=)'),
+  after: z.string().optional().describe('Pagination cursor (Okta after=)'),
+  limit: z.number().int().min(1).max(200).optional().describe('Max items'),
 });
 
 // ============================================================================
@@ -494,6 +504,17 @@ export interface ToolDefinition {
 }
 
 export const tools: ToolDefinition[] = [
+  // Okta Core (Management) - Groups
+  {
+    name: 'okta_groups_list',
+    description: 'List Okta groups (Core API). Supports free-text name search (q) and advanced SCIM search/filter. Returns paginated results with nextAfter cursor.',
+    inputSchema: oktaGroupsListSchema,
+    handler: async (client, input) => {
+      const params = oktaGroupsListSchema.parse(input);
+      return oktaGroups.listGroups(client, params);
+    },
+  },
+
   // Access Certifications
   {
     name: 'iga_campaigns_list',
