@@ -1,0 +1,45 @@
+{
+  "inputs": [
+    {
+      "type": "promptString",
+      "id": "context7-api-key",
+      "description": "Context7 API Key for fetching latest Okta IGA docs",
+      "password": true
+    },
+    {
+      "type": "promptString",
+      "id": "okta-domain",
+      "description": "Okta domain (e.g., https://your-org.okta.com)"
+    },
+    {
+      "type": "promptString",
+      "id": "okta-client-id",
+      "description": "Okta OAuth Service App Client ID"
+    },
+    {
+      "type": "promptString",
+      "id": "okta-private-key",
+      "description": "Okta private key (PEM format) for JWT signing",
+      "password": true
+    }
+  ],
+  "servers": {
+    "context7": {
+      "type": "http",
+      "url": "https://mcp.context7.com/mcp",
+      "headers": {
+        "CONTEXT7_API_KEY": "${input:context7-api-key}"
+      }
+    },
+    "okta-iga": {
+      "type": "stdio",
+      "command": "node",
+      "args": ["${workspaceFolder}/dist/index.js"],
+      "env": {
+        "OKTA_DOMAIN": "${input:okta-domain}",
+        "OKTA_CLIENT_ID": "${input:okta-client-id}",
+        "OKTA_PRIVATE_KEY": "${input:okta-private-key}"
+      }
+    }
+  }
+}
