@@ -1,5 +1,5 @@
 import type { Config } from '../config.js';
-import { getAccessToken } from './oauthServiceApp.js';
+import { getAccessToken, createDPoPProofForRequest, updateDPoPNonce } from './oauthServiceApp.js';
 
 // ============================================================================
 // Error Types
@@ -244,13 +244,17 @@ export function createOktaClient(config: Config) {
 
       try {
         const token = await getAccessToken(config);
+        // DPoP HTU must be the URL without query parameters or fragment
+        const htu = `${url.protocol}//${url.host}${url.pathname}`;
+        const dpopProof = await createDPoPProofForRequest(method, htu, token);
 
         const response = await fetch(url.toString(), {
           method,
           headers: {
-            Authorization: `Bearer ${token}`,
+            Authorization: `DPoP ${token}`,
             Accept: 'application/json',
             'Content-Type': 'application/json',
+            DPoP: dpopProof,
           },
           body: body ? JSON.stringify(body) : undefined,
           signal: AbortSignal.timeout(config.timeoutMs),
@@ -258,6 +262,9 @@ export function createOktaClient(config: Config) {
 
         // Update rate limit state from headers
         updateRateLimitState(response.headers);
+
+        // Update DPoP nonce if provided
+        updateDPoPNonce(response.headers.get('DPoP-Nonce'));
 
         // Handle rate limiting
         if (response.status === 429) {
@@ -346,13 +353,17 @@ export function createOktaClient(config: Config) {
 
       try {
         const token = await getAccessToken(config);
+        // DPoP HTU must be the URL without query parameters or fragment
+        const htu = `${url.protocol}//${url.host}${url.pathname}`;
+        const dpopProof = await createDPoPProofForRequest(method, htu, token);
 
         const response = await fetch(url.toString(), {
           method,
           headers: {
-            Authorization: `Bearer ${token}`,
+            Authorization: `DPoP ${token}`,
             Accept: 'application/json',
             'Content-Type': 'application/json',
+            DPoP: dpopProof,
           },
           body: body ? JSON.stringify(body) : undefined,
           signal: AbortSignal.timeout(config.timeoutMs),
@@ -360,6 +371,9 @@ export function createOktaClient(config: Config) {
 
         // Update rate limit state from headers
         updateRateLimitState(response.headers);
+
+        // Update DPoP nonce if provided
+        updateDPoPNonce(response.headers.get('DPoP-Nonce'));
 
         // Handle rate limiting
         if (response.status === 429) {

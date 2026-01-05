@@ -526,6 +526,46 @@ export const tools: ToolDefinition[] = [
     },
   },
   {
+    name: 'iga_campaigns_list_all',
+    description: 'Show ALL access certification campaigns (access cert campaigns) in one response by automatically paginating through every page. Supports the same filters as iga_campaigns_list (status, type, q).',
+    inputSchema: listCampaignsSchema,
+    handler: async (client, input) => {
+      const params = listCampaignsSchema.parse(input);
+
+      const items: unknown[] = [];
+      let after = params.after;
+      const limit = params.limit ?? 200;
+
+      // Safety guard against accidental infinite pagination.
+      const maxPages = 500;
+      let pageCount = 0;
+
+      while (true) {
+        const resp = await certifications.listCampaigns(client, {
+          ...params,
+          after,
+          limit,
+        });
+
+        items.push(...resp.items);
+        after = resp.nextAfter;
+
+        pageCount += 1;
+        if (!after) break;
+        if (pageCount >= maxPages) {
+          throw new Error(
+            `Pagination exceeded ${maxPages} pages while listing campaigns. Refine your filters (status/type/q) or use iga_campaigns_list with cursors.`
+          );
+        }
+      }
+
+      return {
+        items,
+        count: items.length,
+      };
+    },
+  },
+  {
     name: 'iga_campaigns_get',
     description: 'Get details of an access certification campaign - a scheduled review of user access rights. Returns id, name, type (USER or RESOURCE), status (SCHEDULED, ACTIVE, CLOSED, ARCHIVED), scope (which users/apps are reviewed), reviewer assignments, remediation settings, and completion statistics. Use iga_campaigns_list to find valid campaign IDs.',
     inputSchema: getCampaignSchema,

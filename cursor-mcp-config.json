@@ -1,0 +1,13 @@
+{
+    "mcpServers": {
+      "okta-iga": {
+        "command": "node",
+        "args": ["/Users/craigverzosa/Documents/OIGMCP/dist/index.js"],
+        "env": {
+          "OKTA_DOMAIN": "https://craigverzosa.oktapreview.com",
+          "OKTA_CLIENT_ID": "0oathievo49n5FQEQ1d7",
+          "OKTA_PRIVATE_KEY_PATH": "/Users/craigverzosa/Documents/OIGMCP/private-key.pem"
+        }
+      }
+    }
+  }
